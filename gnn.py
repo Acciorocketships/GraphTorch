@@ -22,7 +22,7 @@ class GNN(MessagePassing):
 		a1 = self.atten(x1n_x1) # n x None x 1
 		a2 = torch.softmax(a1, dim=1) # n x None x 1
 		x2n = self.mul(x1n, a2) # n x None x 2*dim
-		x3 = self.sum(x2n, dim=1) / self.size(x2n, dim=1)[:,None] # n x dim
+		x3 = self.sum(x2n, dim=1) # n x dim
 		x4 = self.phi(x3) # n x out_dim
 		return x4
 
