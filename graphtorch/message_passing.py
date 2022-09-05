@@ -1,5 +1,5 @@
 import torch
-from util import *
+from graphtorch.util import *
 
 class MessagePassing(torch.nn.Module):
 

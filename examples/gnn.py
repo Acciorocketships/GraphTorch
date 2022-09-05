@@ -1,6 +1,6 @@
 import torch
-from mlp import build_mlp
-from message_passing import MessagePassing
+from graphtorch import build_mlp
+from graphtorch import MessagePassing
 
 class GNN(MessagePassing):
 

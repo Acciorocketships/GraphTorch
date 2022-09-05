@@ -1,5 +1,5 @@
 import torch
-from mlp import build_mlp
+from graphtorch import build_mlp
 from torch_scatter.composite import scatter_softmax
 from torch_scatter import scatter_sum
 from torch_geometric.nn import MessagePassing as GeomMessagePassing
