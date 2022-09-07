@@ -15,7 +15,6 @@ class MessagePassing(torch.nn.Module):
 		if len(shape_nested(edge_index)) > 2:
 			return [self.propagate(x_i, edge_index_i, dim=dim-1) for (x_i, edge_index_i) in zip(x.unbind(), edge_index.unbind())]
 		num_agents = size_nested(x, dim=0)
-		x = x.detach() # TODO: this is temporary, until the issue with indexing is fixed
 		neighbours = scatter_nested(input=x, idxi=edge_index[:,0], idxj=edge_index[:,1], size=num_agents)
 		return neighbours
 

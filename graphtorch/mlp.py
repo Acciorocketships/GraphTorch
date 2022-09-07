@@ -23,7 +23,6 @@ def layergen(input_dim, output_dim, nlayers=1, midmult=1.0):
 	return list(np.concatenate([layers1, layers2]))
 
 
-
 class MLP(nn.Module):
 	def __init__(
 		self,

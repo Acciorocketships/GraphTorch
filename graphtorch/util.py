@@ -21,6 +21,8 @@ def scatter_nested(input, idxi, idxj, size=None):
 		nested_shape = shape_nested(input)
 		nested_dim = nested_shape.index(None) if (None in nested_shape) else 1
 		sizes = size_nested(input, dim=nested_dim)
+		if sizes.dim() == 0:
+			sizes = sizes.repeat(size_nested(input, dim=0))
 		input = torch.cat(input.unbind(), dim=nested_dim-1)
 		idxi = torch.repeat_interleave(sizes)
 		idxj = torch.repeat_interleave(sizes)
@@ -122,6 +124,10 @@ def cat_nested(input1, input2, dim):
 
 
 def mul_nested(input1, input2):
+	return torch.nested_tensor([x1i * x2i for (x1i, x2i) in zip(input1.unbind(), input2.unbind())])
+
+
+def add_nested(input1, input2):
 	return torch.nested_tensor([x1i * x2i for (x1i, x2i) in zip(input1.unbind(), input2.unbind())])
 
 
