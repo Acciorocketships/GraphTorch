@@ -15,7 +15,7 @@ class GNN(MessagePassing):
 
 	def forward(self, x, edge_index):
 		# x: n x in_dim
-		# edge_index: 2 x edges
+		# edge_index: edges x 2
 		x1 = self.psi(x) # n x dim
 		x1n = self.propagate(x1, edge_index, dim=0) # n x None x dim
 		x1n_x1 = self.cat(x1n, x1.unsqueeze(1), dim=-1) # n x None x 2*dim
@@ -30,8 +30,7 @@ class GNN(MessagePassing):
 if __name__ == "__main__":
 	x = torch.randn(4, 2)
 
-	e = torch.tensor([[0, 0, 1, 2, 2, 2, 3],
-					  [0, 1, 1, 0, 1, 3, 2]])
+	e = torch.tensor([[0, 0, 1, 2, 2, 2, 3],[0, 1, 1, 0, 1, 3, 2]]).T
 
 	gnn = GNN(2, 4)
 

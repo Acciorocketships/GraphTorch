@@ -48,8 +48,7 @@ class GNN_Geometric(GeomMessagePassing):
 if __name__ == "__main__":
 	x = torch.randn(4, 2)
 
-	e = torch.tensor([[0, 0, 1, 2, 2, 2, 3],
-					  [0, 1, 1, 0, 1, 3, 2]])
+	e = torch.tensor([[0, 0, 1, 2, 2, 2, 3], [0, 1, 1, 0, 1, 3, 2]])
 
 	gnn = GNN_Geometric(2, 4)
 
