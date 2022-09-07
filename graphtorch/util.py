@@ -20,16 +20,20 @@ def scatter_nested(input, idxi, idxj, size=None):
 	if input.is_nested:
 		nested_shape = shape_nested(input)
 		nested_dim = nested_shape.index(None) if (None in nested_shape) else 1
-		sizes = size_nested(input, dim=nested_dim)
-		if sizes.dim() == 0:
-			sizes = sizes.repeat(size_nested(input, dim=0))
-		input = torch.cat(input.unbind(), dim=nested_dim-1)
-		idxi = torch.repeat_interleave(sizes)
-		idxj = torch.repeat_interleave(sizes)
-	sizes = torch.zeros(num_nodes).int().scatter_(dim=0, index=idxi, src=torch.ones_like(idxi).int(), reduce='add')
-	out_flat = torch.index_select(input=input, dim=0, index=idxj)
-	out = torch.nested_tensor(torch.split(out_flat, sizes.tolist()))
+		out_list = [[] for _ in range(num_nodes)]
+		for i, j in zip(idxi, idxj):
+			out_list[i].append(input[j])
+		out_list_cat = list(map(lambda nodei: torch.cat(nodei, dim=nested_dim-1), out_list))
+		out = torch.nested_tensor(out_list_cat)
+	else:
+		sizes = torch.zeros(num_nodes).int().scatter_(dim=0, index=idxi, src=torch.ones_like(idxi).int(), reduce='add')
+		out_flat = torch.index_select(input=input, dim=0, index=idxj)
+		out = torch.nested_tensor(torch.split(out_flat, sizes.tolist()))
 	return out
+
+
+def index_select(input, index):
+	return torch.nested_tensor([input[i] for i in index])
 
 
 def apply_nested(func, input, *args):
