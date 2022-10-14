@@ -132,7 +132,7 @@ def mul_nested(input1, input2):
 
 
 def add_nested(input1, input2):
-	return torch.nested_tensor([x1i * x2i for (x1i, x2i) in zip(input1.unbind(), input2.unbind())])
+	return torch.nested_tensor([x1i + x2i for (x1i, x2i) in zip(input1.unbind(), input2.unbind())])
 
 
 def nested_to_batch(nested, return_sizes=False):
