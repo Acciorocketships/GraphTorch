@@ -32,10 +32,6 @@ def scatter_nested(input, idxi, idxj, size=None):
 	return out
 
 
-def index_select(input, index):
-	return torch.nested_tensor([input[i] for i in index])
-
-
 def apply_nested(func, input, *args):
 	'''
 	:param func:
@@ -144,6 +140,65 @@ def nested_to_batch(nested, return_sizes=False):
 	else:
 		batch = torch.arange(len(tensor_list)).repeat_interleave(sizes)
 		return flat, batch
+
+
+def select_index(arr, dim, idx):
+	idx_list = [slice(None)] * len(arr.shape)
+	idx_list[dim] = idx
+	return arr.__getitem__(idx_list)
+
+
+def index_with_nested(src, index, dim=0):
+	return torch.nested_tensor([select_index(src=src, idx=idxi.long(), dim=dim) for idxi in index.unbind()])
+
+
+def permute_nested(nt, perm):
+	if perm.is_nested:
+		return torch.nested_tensor([xi[permi] for xi, permi in zip(nt.unbind(), perm.unbind())])
+	else:
+		dim0_size = size_nested(nt, dim=0)
+		x_flat, sizes = nested_to_batch(nt, return_sizes=True)
+		batch = torch.arange(dim0_size).repeat_interleave(sizes)
+		x_perm = x_flat[perm]
+		batch = batch[perm]
+		return create_nested_batch(x_perm, batch, dim_size=dim0_size)
+
+
+def create_nested(x, sizes):
+	return torch.nested_tensor(torch.split(x, sizes.tolist()))
+
+
+def create_nested_batch(x, batch, dim_size=None):
+	'''
+	Creates a nested tensor from a (n x d) tensor and a (n) vector specifying the batch of each element in that tensor
+	:param x: a (n x d) tensor
+	:param batch: a (n) vector specifying the batch along axis 0 of x
+	:param dim_size: if given, it specifies b in the output shape (b x None x d). otherwise, b = max(batch)+1
+	:return: a (b x None x d) tensor
+	'''
+	if dim_size is None:
+		dim_size = torch.max(batch)+1
+	sizes = torch.zeros(dim_size).scatter_(dim=0, index=batch, src=torch.ones(batch.shape[0]), reduce='add').int()
+	return create_nested(x, sizes)
+
+
+def truncate_nested(nt, sizes, dim=1):
+	'''
+	Sets the sizes of the variable size dimension in a nested tensor. The tensor is truncated when larger than the
+	given size, and torch.nan is added when the tensor is smaller than the given size.
+	:param nt: the source nested tensor
+	:param sizes: a vector of sizes
+	:param dim: the dim of nt to truncate
+	:return: the updated version of nt
+	'''
+	dim = dim-1
+	size_update = lambda size, dimsize: tuple(list(size)[:dim] + [dimsize] + list(size)[dim+1:])
+	return torch.nested_tensor([
+			torch.cat([
+				torch.narrow(xi, dim=dim, start=0, length=min(size, xi.shape[dim])),
+				torch.full(size=size_update(xi.shape, max(size-xi.shape[dim], 0)), fill_value=torch.nan)
+			], dim=dim)
+		for (xi, size) in zip(nt.unbind(), sizes)])
 
 
 def collect(input, index, dim_along=0, dim_select=1):
