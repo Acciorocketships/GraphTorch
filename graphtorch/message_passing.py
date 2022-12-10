@@ -24,6 +24,6 @@ if __name__ == "__main__":
 	e = torch.tensor([[0, 0, 1, 2, 2, 2, 3],[0, 1, 1, 0, 1, 3, 2]]).T
 	m = MessagePassing()
 	y1 = m.propagate(x, e)
-	y2 = m.propagate(torch.nested_tensor([x]), torch.nested_tensor([e]))
+	y2 = m.propagate(torch.nested.nested_tensor([x]), torch.nested.nested_tensor([e]))
 	breakpoint()
 
