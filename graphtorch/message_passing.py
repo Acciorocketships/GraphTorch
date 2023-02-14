@@ -1,4 +1,6 @@
 from hettensor import HetTensor
+from torch import Tensor
+from typing import Union
 from hettensor.hettensor import running_counts
 from graphtorch.util import *
 
@@ -7,7 +9,7 @@ class MessagePassing(torch.nn.Module):
 	def __init__(self):
 		super().__init__()
 
-	def propagate(self, x: torch.Tensor, edge_index: torch.Tensor, dim=0):
+	def propagate(self, x: Union[Tensor, HetTensor], edge_index: Union[Tensor, HetTensor], dim=0):
 		if isinstance(edge_index, HetTensor):
 			n_batch_dims = edge_index.dim() - 2
 			batch_dims = list(range(n_batch_dims))

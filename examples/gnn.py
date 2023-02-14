@@ -21,11 +21,12 @@ class GNN(MessagePassing):
 		x1 = self.psi(x) # n x dim
 		x1n = self.propagate(x1, edge_index, dim=0) # n x None x dim
 		x1n_x1 = x1n.apply(x1, lambda x, y: torch.cat([x, y.expand(x.shape[0], -1)], dim=-1), batch_dims=[0])
-		a1 = self.atten(x1n_x1) # n x None x 1
-		a2 = torch.softmax(a1, dim=1) # n x None x 1
-		x2n = self.mul(x1n, a2) # n x None x 2*dim
-		x3 = self.sum(x2n, dim=1) # n x dim
-		x4 = self.phi(x3) # n x out_dim
+		a1 = x1n_x1.apply(None, self.atten) # n x None x 1
+		a2 = a1.apply(None, lambda x: torch.softmax(x, dim=0), batch_dims=[0]) # n x None x 1
+		x2n = x1n * a2 # n x None x 2*dim
+		x3 = x2n.sum(dim=1) # n x dim
+		x3t = x3.data
+		x4 = self.phi(x3t) # n x out_dim
 		return x4
 
 
