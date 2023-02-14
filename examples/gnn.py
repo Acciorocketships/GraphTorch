@@ -20,10 +20,7 @@ class GNN(MessagePassing):
 		n = x.shape[0]
 		x1 = self.psi(x) # n x dim
 		x1n = self.propagate(x1, edge_index, dim=0) # n x None x dim
-		data_list = []
-		for i in range(n):
-			data_list.append(torch.cat([x1n[i].data, x1[i].unsqueeze(0).expand(x1n[i].data.shape[0], -1)], dim=-1))
-		x1n_x1 = HetTensor(data=torch.cat(data_list, dim=0), idxs=x1n.idxs, dim_perm=x1n.dim_perm)
+		x1n_x1 = x1n.apply(x1, lambda x, y: torch.cat([x, y.expand(x.shape[0], -1)], dim=-1), batch_dims=[0])
 		a1 = self.atten(x1n_x1) # n x None x 1
 		a2 = torch.softmax(a1, dim=1) # n x None x 1
 		x2n = self.mul(x1n, a2) # n x None x 2*dim
