@@ -1,4 +1,5 @@
 import torch
+from hettensor import HetTensor
 from graphtorch import build_mlp
 from graphtorch import MessagePassing
 
@@ -16,9 +17,13 @@ class GNN(MessagePassing):
 	def forward(self, x, edge_index):
 		# x: n x in_dim
 		# edge_index: edges x 2
+		n = x.shape[0]
 		x1 = self.psi(x) # n x dim
 		x1n = self.propagate(x1, edge_index, dim=0) # n x None x dim
-		x1n_x1 = self.cat(x1n, x1.unsqueeze(1), dim=-1) # n x None x 2*dim
+		data_list = []
+		for i in range(n):
+			data_list.append(torch.cat([x1n[i].data, x1[i].unsqueeze(0).expand(x1n[i].data.shape[0], -1)], dim=-1))
+		x1n_x1 = HetTensor(data=torch.cat(data_list, dim=0), idxs=x1n.idxs, dim_perm=x1n.dim_perm)
 		a1 = self.atten(x1n_x1) # n x None x 1
 		a2 = torch.softmax(a1, dim=1) # n x None x 1
 		x2n = self.mul(x1n, a2) # n x None x 2*dim
